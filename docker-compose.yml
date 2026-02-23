@@ -1,4 +1,17 @@
 services:
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: lax_medic
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./backend/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
   backend:
     build:
       context: ./backend
@@ -10,6 +23,9 @@ services:
       - /app/tmp # build artifacts
     environment:
       - GIN_MODE=release # or debug
+      - DATABASE_URL=postgres://user:password@db:5432/lax_medic?sslmode=disable
+    depends_on:
+      - db
     stdin_open: true
     tty: true
 
@@ -30,3 +46,4 @@ services:
 
 volumes:
   node_modules:
+  db_data:
