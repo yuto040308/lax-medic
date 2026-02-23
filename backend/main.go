@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -10,7 +12,10 @@ func main() {
 
 	// CORS設定
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:3000"}
+	config.AllowOrigins = []string{
+		"http://localhost:3000",
+		"https://lax-medic.vercel.app", // Vercelのドメインを追加
+	}
 	config.AllowMethods = []string{"GET", "OPTIONS"}
 	config.AllowHeaders = []string{"Origin", "Content-Type", "Accept"}
 	r.Use(cors.New(config))
@@ -22,6 +27,10 @@ func main() {
 		})
 	})
 
-	// 8080ポートで起動
-	r.Run(":8080")
+	// ポート番号を環境変数から取得（Cloud Run対応）
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	r.Run(":" + port)
 }
