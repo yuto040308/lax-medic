@@ -1,6 +1,94 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  Box,
+  Container,
+  Typography,
+  TextField,
+  Button,
+  Card,
+  CardContent,
+  Grid,
+  AppBar,
+  Toolbar,
+  IconButton,
+  Avatar,
+  Chip,
+  Divider,
+  Paper,
+  Alert,
+  ThemeProvider,
+  createTheme,
+  CssBaseline,
+  InputAdornment,
+  Fab,
+  Tooltip,
+  Stack
+} from "@mui/material";
+import {
+  Login as LoginIcon,
+  Logout as LogoutIcon,
+  Add as AddIcon,
+  Person as PersonIcon,
+  LocalHospital as HospitalIcon,
+  History as HistoryIcon,
+  Search as SearchIcon,
+  Healing as HealingIcon,
+  Place as PlaceIcon,
+  Emergency as EmergencyIcon,
+  Refresh as RefreshIcon,
+  MedicalInformation as MedIcon
+} from "@mui/icons-material";
+
+// グラフィカルで視認性の高いテーマ作成
+const theme = createTheme({
+  palette: {
+    mode: 'light',
+    primary: {
+      main: '#1976d2', // 信頼感のあるブルー
+    },
+    secondary: {
+      main: '#388e3c', // 医療・救急を想起させるグリーン
+    },
+    error: {
+      main: '#d32f2f', // 警告
+    },
+    background: {
+      default: '#f4f6f8',
+    },
+  },
+  typography: {
+    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+    h4: {
+      fontWeight: 800,
+    },
+    h6: {
+      fontWeight: 700,
+    },
+  },
+  shape: {
+    borderRadius: 12,
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          padding: '10px 24px',
+          fontWeight: 700,
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+        },
+      },
+    },
+  },
+});
 
 interface Casualty {
   id?: string;
@@ -67,7 +155,7 @@ export default function Home() {
         setLoginError(errorData.error || "Login failed");
       }
     } catch (err) {
-      setLoginError("Connection error");
+      setLoginError("Connection error. Is backend running?");
     }
   };
 
@@ -80,10 +168,10 @@ export default function Home() {
         const data = await res.json();
         setCasualties(data || []);
       } else {
-        setFetchError("Failed to fetch data");
+        setFetchError("Failed to fetch records from database.");
       }
     } catch (err) {
-      setFetchError("Connection error");
+      setFetchError("Network error: Cannot reach the backend.");
     } finally {
       setLoading(false);
     }
@@ -115,214 +203,237 @@ export default function Home() {
         });
       } else {
         const errorData = await res.json();
-        alert("Registration failed: " + errorData.error);
+        alert("Error: " + errorData.error);
       }
     } catch (err) {
-      alert("Registration failed");
+      alert("Network error while saving record.");
     }
   };
 
   if (!isLoggedIn) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center p-6 bg-slate-950 text-white font-sans">
-        <div className="w-full max-w-sm p-8 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md shadow-2xl">
-          <h1 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
-            Lax Medic Login
-          </h1>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-sm text-slate-400 mb-1">表示名 (例: おにし)</label>
-              <input
-                type="text"
-                value={userName}
-                onChange={(e) => setUserName(e.target.value)}
-                className="w-full p-3 rounded-lg bg-white/5 border border-white/10 focus:ring-2 focus:ring-blue-500 outline-none transition"
-                placeholder="Name"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-slate-400 mb-1">共有パスワード</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full p-3 rounded-lg bg-white/5 border border-white/10 focus:ring-2 focus:ring-blue-500 outline-none transition"
-                placeholder="Password"
-                required
-              />
-            </div>
-            {loginError && <p className="text-red-400 text-sm animate-pulse">{loginError}</p>}
-            <button
-              type="submit"
-              className="w-full py-3 rounded-lg bg-blue-600 hover:bg-blue-500 font-bold transition shadow-lg shadow-blue-600/20 active:scale-95"
-            >
-              ログイン
-            </button>
-          </form>
-          <p className="mt-8 text-xs text-center text-slate-500 italic">
-            合宿用 傷病者管理システム
-          </p>
-        </div>
-      </main>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Box
+          sx={{
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+            p: 2
+          }}
+        >
+          <Container maxWidth="xs">
+            <Paper elevation={24} sx={{ p: 4, borderRadius: 4, textAlign: 'center' }}>
+              <Avatar sx={{ m: '0 auto 16px', bgcolor: 'secondary.main', width: 64, height: 64 }}>
+                <HospitalIcon fontSize="large" />
+              </Avatar>
+              <Typography variant="h4" gutterBottom color="primary" sx={{ letterSpacing: -1 }}>
+                LAX MEDIC
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 4, fontWeight: 500 }}>
+                傷病者管理・医療記録システム
+              </Typography>
+
+              <form onSubmit={handleLogin}>
+                <Stack spacing={3}>
+                  <TextField
+                    fullWidth
+                    label="表示名 (例: おにし)"
+                    value={userName}
+                    onChange={(e) => setUserName(e.target.value)}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <PersonIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                    required
+                  />
+                  <TextField
+                    fullWidth
+                    label="共有パスワード"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <MedIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                    required
+                  />
+                  {loginError && (
+                    <Alert severity="error" variant="filled" sx={{ borderRadius: 2 }}>
+                      {loginError}
+                    </Alert>
+                  )}
+                  <Button
+                    type="submit"
+                    fullWidth
+                    variant="contained"
+                    size="large"
+                    endIcon={<LoginIcon />}
+                    sx={{ py: 2, fontSize: '1.1rem' }}
+                  >
+                    ログイン
+                  </Button>
+                </Stack>
+              </form>
+              <Typography variant="caption" sx={{ display: 'block', mt: 4, color: 'text.disabled', fontWeight: 700 }}>
+                FOR INTERNAL USE ONLY
+              </Typography>
+            </Paper>
+          </Container>
+        </Box>
+      </ThemeProvider>
     );
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white font-sans p-4 md:p-8">
-      <div className="max-w-6xl mx-auto space-y-8">
-        <header className="flex flex-col md:flex-row justify-between items-center gap-4 border-b border-white/10 pb-6">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
-              Lax Medic Dashboard
-            </h1>
-            <p className="text-sm text-slate-500">傷病者対応記録・管理</p>
-          </div>
-          <div className="flex items-center gap-4 bg-white/5 px-4 py-2 rounded-full border border-white/10">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-            <span className="text-sm font-medium">{userName} としてログイン中</span>
-            <button
-              onClick={() => setIsLoggedIn(false)}
-              className="text-xs text-red-400 hover:text-red-300 transition"
-            >
-              ログアウト
-            </button>
-          </div>
-        </header>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Box sx={{ flexGrow: 1, minHeight: '100vh', bgcolor: 'background.default' }}>
+        <AppBar position="sticky" elevation={0} sx={{ borderBottom: '1px solid rgba(0,0,0,0.1)', bgcolor: 'white', color: 'text.primary' }}>
+          <Toolbar>
+            <Avatar sx={{ bgcolor: 'primary.main', mr: 2, width: 32, height: 32 }}>L</Avatar>
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1, letterSpacing: -0.5 }}>
+              LAX MEDIC <Box component="span" sx={{ fontWeight: 400, color: 'text.secondary', ml: 1, fontSize: '0.9rem' }}>DASHBOARD</Box>
+            </Typography>
+            <Typography variant="body2" sx={{ mr: 2, fontWeight: 600, display: { xs: 'none', sm: 'block' } }}>
+              {userName}
+            </Typography>
+            <IconButton color="error" onClick={() => setIsLoggedIn(false)} size="small" sx={{ bgcolor: 'error.main', color: 'white', '&:hover': { bgcolor: 'error.dark' } }}>
+              <LogoutIcon fontSize="small" />
+            </IconButton>
+          </Toolbar>
+        </AppBar>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* 登録フォーム */}
-          <aside className="lg:col-span-1">
-            <div className="sticky top-8 p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
-              <h2 className="text-xl font-bold mb-6 text-emerald-400 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs">＋</span>
-                新規対応記録
-              </h2>
-              <form onSubmit={handleCreate} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-2">
-                    <label className="text-xs text-slate-500 ml-1">患者名</label>
-                    <input type="text" placeholder="名前" className="w-full p-2.5 rounded-lg bg-white/5 border border-white/10 outline-none focus:border-emerald-500 transition" value={newRecord.patient_name} onChange={e => setNewRecord({ ...newRecord, patient_name: e.target.value })} required />
-                  </div>
-                  <div>
-                    <label className="text-xs text-slate-500 ml-1">大学名</label>
-                    <input type="text" placeholder="○○大学" className="w-full p-2.5 rounded-lg bg-white/5 border border-white/10 outline-none focus:border-emerald-500 transition" value={newRecord.university} onChange={e => setNewRecord({ ...newRecord, university: e.target.value })} />
-                  </div>
-                  <div>
-                    <label className="text-xs text-slate-500 ml-1">学年</label>
-                    <input type="text" placeholder="3年" className="w-full p-2.5 rounded-lg bg-white/5 border border-white/10 outline-none focus:border-emerald-500 transition" value={newRecord.grade} onChange={e => setNewRecord({ ...newRecord, grade: e.target.value })} />
-                  </div>
-                  <div className="col-span-2">
-                    <label className="text-xs text-slate-500 ml-1">場所・状況</label>
-                    <input type="text" placeholder="第1グラウンド 転倒" className="w-full p-2.5 rounded-lg bg-white/5 border border-white/10 outline-none focus:border-emerald-500 transition" value={newRecord.location_detail} onChange={e => setNewRecord({ ...newRecord, location_detail: e.target.value })} />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-xs text-slate-500 ml-1">負傷の詳細</label>
-                  <textarea placeholder="右足首の捻挫など" className="w-full p-2.5 rounded-lg bg-white/5 border border-white/10 outline-none focus:border-emerald-500 transition h-20 resize-none" value={newRecord.injury_detail} onChange={e => setNewRecord({ ...newRecord, injury_detail: e.target.value })}></textarea>
-                </div>
-                <div>
-                  <label className="text-xs text-slate-500 ml-1">処置内容</label>
-                  <textarea placeholder="RICE処置済み" className="w-full p-2.5 rounded-lg bg-white/5 border border-white/10 outline-none focus:border-emerald-500 transition h-20 resize-none" value={newRecord.treatment} onChange={e => setNewRecord({ ...newRecord, treatment: e.target.value })}></textarea>
-                </div>
-                <div>
-                  <label className="text-xs text-slate-500 ml-1">受診の必要性</label>
-                  <input type="text" placeholder="要受診 / 不要" className="w-full p-2.5 rounded-lg bg-white/5 border border-white/10 outline-none focus:border-emerald-500 transition" value={newRecord.transport_needed} onChange={e => setNewRecord({ ...newRecord, transport_needed: e.target.value })} />
-                </div>
-                <button type="submit" className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold transition shadow-lg shadow-emerald-600/20 active:scale-95 focus:ring-2 focus:ring-emerald-500">
-                  記録を保存する
-                </button>
-              </form>
-            </div>
-          </aside>
+        <Container maxWidth="lg" sx={{ mt: 4, mb: 8 }}>
+          <Grid container spacing={4}>
+            {/* 登録セクション */}
+            <Grid item xs={12} lg={4}>
+              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+                <AddIcon color="primary" /> 新規対応記録
+              </Typography>
+              <Card sx={{ p: 1 }}>
+                <CardContent>
+                  <form onSubmit={handleCreate}>
+                    <Stack spacing={2}>
+                      <TextField label="患者名" fullWidth required value={newRecord.patient_name} onChange={e => setNewRecord({ ...newRecord, patient_name: e.target.value })} size="small" />
+                      <Grid container spacing={2}>
+                        <Grid item xs={6}>
+                          <TextField label="大学名" fullWidth value={newRecord.university} onChange={e => setNewRecord({ ...newRecord, university: e.target.value })} size="small" />
+                        </Grid>
+                        <Grid item xs={6}>
+                          <TextField label="学年" fullWidth value={newRecord.grade} onChange={e => setNewRecord({ ...newRecord, grade: e.target.value })} size="small" />
+                        </Grid>
+                      </Grid>
+                      <TextField label="場所・状況" fullWidth multiline rows={2} value={newRecord.location_detail} onChange={e => setNewRecord({ ...newRecord, location_detail: e.target.value })} size="small" placeholder="例: グラウンドB 接触により転倒" />
+                      <TextField label="負傷の詳細" fullWidth multiline rows={3} value={newRecord.injury_detail} onChange={e => setNewRecord({ ...newRecord, injury_detail: e.target.value })} size="small" />
+                      <TextField label="処置内容" fullWidth multiline rows={3} value={newRecord.treatment} onChange={e => setNewRecord({ ...newRecord, treatment: e.target.value })} size="small" color="secondary" />
+                      <TextField label="搬送・受診要否" fullWidth value={newRecord.transport_needed} onChange={e => setNewRecord({ ...newRecord, transport_needed: e.target.value })} size="small" />
+                      <TextField label="備考" fullWidth value={newRecord.remarks} onChange={e => setNewRecord({ ...newRecord, remarks: e.target.value })} size="small" />
 
-          {/* 一覧表示 */}
-          <section className="lg:col-span-2 space-y-6">
-            <div className="flex justify-between items-end">
-              <h2 className="text-xl font-bold flex items-center gap-2">
-                <span className="w-2 h-6 bg-blue-500 rounded-full"></span>
-                対応状況一覧
-              </h2>
-              <button
-                onClick={fetchCasualties}
-                className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
-                disabled={loading}
-              >
-                {loading ? "更新中..." : "↺ 最新に更新"}
-              </button>
-            </div>
+                      <Button type="submit" variant="contained" color="secondary" fullWidth startIcon={<AddIcon />}>
+                        保存
+                      </Button>
+                    </Stack>
+                  </form>
+                </CardContent>
+              </Card>
+            </Grid>
 
-            {fetchError && (
-              <div className="p-4 bg-red-400/10 border border-red-400/20 rounded-xl text-red-400 text-sm">
-                エラー: {fetchError}
-              </div>
-            )}
+            {/* 一覧セクション */}
+            <Grid item xs={12} lg={8}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <HistoryIcon color="primary" /> 記録履歴
+                </Typography>
+                <IconButton onClick={fetchCasualties} disabled={loading} size="small">
+                  <RefreshIcon sx={{ animation: loading ? 'spin 1.5s linear infinite' : 'none' }} />
+                </IconButton>
+              </Box>
 
-            <div className="grid gap-4">
-              {casualties.map((c) => (
-                <div key={c.id} className="group relative p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-blue-400/40 transition-all duration-300">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-xl font-bold text-blue-400 group-hover:text-blue-300 transition-colors">
-                        {c.patient_name}
-                      </h3>
-                      <p className="text-sm text-slate-400">
-                        {c.university} {c.grade} | {c.position || "未設定"}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-xs font-mono text-slate-500 bg-white/5 px-2 py-1 rounded">
-                        {new Date(c.occurred_at).toLocaleString('ja-JP', {
-                          month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                        })}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div className="space-y-1">
-                        <p className="text-xs text-slate-500 uppercase tracking-wider">地点・状況</p>
-                        <p className="text-slate-200">{c.location_detail || "---"}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-xs text-slate-500 uppercase tracking-wider">受診要否</p>
-                        <p className={c.transport_needed?.includes("要") ? "text-red-400 font-bold" : "text-emerald-400"}>
-                          {c.transport_needed || "---"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="p-3 rounded-lg bg-white/5 border border-white/5">
-                      <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">受傷詳細</p>
-                      <p className="text-sm text-slate-300 whitespace-pre-wrap">{c.injury_detail}</p>
-                    </div>
-
-                    <div className="p-3 rounded-lg bg-emerald-400/5 border border-emerald-400/10">
-                      <p className="text-xs text-emerald-500/70 font-bold uppercase tracking-wider mb-1">実施処置</p>
-                      <p className="text-sm text-emerald-100 whitespace-pre-wrap">{c.treatment}</p>
-                    </div>
-
-                    <div className="pt-4 border-t border-white/5 flex justify-between items-center text-[10px] text-slate-500">
-                      <div className="flex gap-4">
-                        <span>連絡先: {c.staff_contact || "なし"}</span>
-                      </div>
-                      <span className="italic">対応責任者: {c.responder}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {casualties.length === 0 && !loading && (
-                <div className="flex flex-col items-center justify-center py-20 text-slate-500 bg-white/2 border border-dashed border-white/10 rounded-2xl">
-                  <span className="text-4xl mb-2">📋</span>
-                  <p>まだ記録がありません。左のフォームから登録してください。</p>
-                </div>
+              {fetchError && (
+                <Alert severity="error" sx={{ mb: 4 }}>{fetchError}</Alert>
               )}
-            </div>
-          </section>
-        </div>
-      </div>
-    </main>
+
+              <Stack spacing={2}>
+                {casualties.map((c) => (
+                  <Card key={c.id}>
+                    <CardContent sx={{ p: 3 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                        <Box>
+                          <Typography variant="h6" color="primary" sx={{ fontWeight: 800 }}>
+                            {c.patient_name}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
+                            {c.university} {c.grade}
+                          </Typography>
+                        </Box>
+                        <Chip
+                          label={new Date(c.occurred_at).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                          size="small"
+                        />
+                      </Box>
+                      <Divider sx={{ mb: 2 }} />
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} sm={6}>
+                          <Box sx={{ mb: 1 }}>
+                            <Typography variant="caption" color="text.disabled" sx={{ fontWeight: 800, display: 'block' }}>状況</Typography>
+                            <Typography variant="body2">{c.location_detail || "---"}</Typography>
+                          </Box>
+                          <Box>
+                            <Typography variant="caption" color="text.disabled" sx={{ fontWeight: 800, display: 'block' }}>負傷詳細</Typography>
+                            <Typography variant="body2">{c.injury_detail}</Typography>
+                          </Box>
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <Paper sx={{ p: 1.5, bgcolor: 'secondary.light', color: 'white' }}>
+                            <Typography variant="caption" sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                              <HealingIcon fontSize="inherit" /> 処置
+                            </Typography>
+                            <Typography variant="body2">{c.treatment}</Typography>
+                          </Paper>
+                        </Grid>
+                      </Grid>
+                      <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Chip
+                          icon={<HospitalIcon />}
+                          label={c.transport_needed || "搬送不要"}
+                          color={c.transport_needed?.includes("要") ? "error" : "default"}
+                          size="small"
+                        />
+                        <Typography variant="caption" color="text.secondary">
+                          対応者: {c.responder}
+                        </Typography>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                ))}
+
+                {casualties.length === 0 && !loading && (
+                  <Paper sx={{ p: 4, textAlign: 'center', border: '1px dashed grey' }}>
+                    <Typography color="text.secondary">記録はありません</Typography>
+                  </Paper>
+                )}
+              </Stack>
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
+
+      <style jsx global>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+    </ThemeProvider>
   );
 }

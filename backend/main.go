@@ -74,7 +74,8 @@ func main() {
 
 		sharedPass := os.Getenv("SHARED_PASSWORD")
 		if sharedPass == "" {
-			sharedPass = "admin123" // デフォルトパスワード
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Server configuration error: password not set"})
+			return
 		}
 
 		if loginData.Password == sharedPass {

@@ -21,9 +21,8 @@ services:
     volumes:
       - ./backend:/app
       - /app/tmp # build artifacts
-    environment:
-      - GIN_MODE=release # or debug
-      - DATABASE_URL=postgres://user:password@db:5432/lax_medic?sslmode=disable
+    env_file:
+      - ./backend/.env
     depends_on:
       - db
     stdin_open: true
