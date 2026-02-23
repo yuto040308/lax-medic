@@ -9,7 +9,11 @@
 
 - **Frontend**: Next.js (App Router) + TypeScript
 - **Backend**: Go (Gin)
-- **Infrastructure**: Docker Compose
+- **Infrastructure**: Docker Compose, Vercel (Frontend)
+
+## 🌐 デプロイ情報
+
+- **Frontend (Vercel)**: [https://lax-medic.vercel.app/](https://lax-medic.vercel.app/)
 
 ## 🛠 テクノロジースタック
 
