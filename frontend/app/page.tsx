@@ -36,9 +36,9 @@ import {
   DialogActions,
   InputBase,
   alpha,
-  styled,
-  Grid // MUI v5/v6 標準の Grid を使用
+  styled
 } from "@mui/material";
+import Grid from "@mui/material/Grid"; // MUI v5/v6 標準の Grid
 import {
   Login as LoginIcon,
   Logout as LogoutIcon,
@@ -54,6 +54,15 @@ import {
   FilterList as FilterIcon,
   Close as CloseIcon
 } from "@mui/icons-material";
+
+/**
+ * [!] 重要: 型エラー (ts2769) への対応
+ * 
+ * 現在の環境が MUI v5 以前の場合、Grid に container や item プロパティが必要ですが、
+ * MUI v6 以降の型が適用されている場合、プロパティが異なる場合があります。
+ * 
+ * 明示的に `@mui/material/Grid` を使用し、標準的な props で記述します。
+ */
 
 // グラフィカルで視認性の高いテーマ作成
 const theme = createTheme({
@@ -489,10 +498,11 @@ export default function Home() {
               <Stack spacing={3} sx={{ mt: 1 }}>
                 <TextField label="患者名" fullWidth required value={newRecord.patient_name} onChange={e => setNewRecord({ ...newRecord, patient_name: e.target.value })} />
                 <Grid container spacing={2}>
-                  <Grid item xs={6}>
+                  {/* size プロパティを使用して MUI v6 形式で記述 */}
+                  <Grid size={{ xs: 6 }}>
                     <TextField label="大学名" fullWidth value={newRecord.university} onChange={e => setNewRecord({ ...newRecord, university: e.target.value })} />
                   </Grid>
-                  <Grid item xs={6}>
+                  <Grid size={{ xs: 6 }}>
                     <TextField label="学年" fullWidth value={newRecord.grade} onChange={e => setNewRecord({ ...newRecord, grade: e.target.value })} />
                   </Grid>
                 </Grid>
