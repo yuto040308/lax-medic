@@ -7,22 +7,17 @@ import {
   Typography,
   TextField,
   Button,
-  Card,
-  CardContent,
   AppBar,
   Toolbar,
   IconButton,
   Avatar,
   Chip,
-  Divider,
   Paper,
   Alert,
   ThemeProvider,
   createTheme,
   CssBaseline,
-  InputAdornment,
   Fab,
-  Tooltip,
   Stack,
   Table,
   TableBody,
@@ -34,35 +29,19 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  InputBase,
-  alpha,
-  styled
+  InputAdornment
 } from "@mui/material";
-import Grid from "@mui/material/Grid"; // MUI v5/v6 標準の Grid
+import Grid from "@mui/material/Grid";
 import {
-  Login as LoginIcon,
   Logout as LogoutIcon,
   Add as AddIcon,
-  Person as PersonIcon,
   LocalHospital as HospitalIcon,
   Search as SearchIcon,
-  Healing as HealingIcon,
-  Place as PlaceIcon,
-  Emergency as EmergencyIcon,
   Refresh as RefreshIcon,
-  MedicalInformation as MedIcon,
-  FilterList as FilterIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
+  FilterAlt as FilterAltIcon,
+  Clear as ClearIcon
 } from "@mui/icons-material";
-
-/**
- * [!] 重要: 型エラー (ts2769) への対応
- * 
- * 現在の環境が MUI v5 以前の場合、Grid に container や item プロパティが必要ですが、
- * MUI v6 以降の型が適用されている場合、プロパティが異なる場合があります。
- * 
- * 明示的に `@mui/material/Grid` を使用し、標準的な props で記述します。
- */
 
 // グラフィカルで視認性の高いテーマ作成
 const theme = createTheme({
@@ -114,47 +93,6 @@ const theme = createTheme({
   },
 });
 
-// 検索バーのカスタムスタイル
-const Search = styled('div')(({ theme }) => ({
-  position: 'relative',
-  borderRadius: theme.shape.borderRadius,
-  backgroundColor: alpha(theme.palette.common.black, 0.05),
-  '&:hover': {
-    backgroundColor: alpha(theme.palette.common.black, 0.08),
-  },
-  marginRight: theme.spacing(2),
-  marginLeft: 0,
-  width: '100%',
-  [theme.breakpoints.up('sm')]: {
-    marginLeft: theme.spacing(3),
-    width: 'auto',
-  },
-}));
-
-const SearchIconWrapper = styled('div')(({ theme }) => ({
-  padding: theme.spacing(0, 2),
-  height: '100%',
-  position: 'absolute',
-  pointerEvents: 'none',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-}));
-
-const StyledInputBase = styled(InputBase)(({ theme }) => ({
-  color: 'inherit',
-  width: '100%',
-  '& .MuiInputBase-input': {
-    padding: theme.spacing(1, 1, 1, 0),
-    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-    transition: theme.transitions.create('width'),
-    width: '100%',
-    [theme.breakpoints.up('md')]: {
-      width: '40ch',
-    },
-  },
-}));
-
 interface Casualty {
   id?: string;
   occurred_at: string;
@@ -171,6 +109,17 @@ interface Casualty {
   remarks: string;
 }
 
+interface Filters {
+  patient_name: string;
+  university: string;
+  grade: string;
+  location_detail: string;
+  injury_detail: string;
+  treatment: string;
+  transport_needed: string;
+  responder: string;
+}
+
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
@@ -180,7 +129,18 @@ export default function Home() {
   const [casualties, setCasualties] = useState<Casualty[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
+
+  // 詳細フィルタの状態
+  const [filters, setFilters] = useState<Filters>({
+    patient_name: "",
+    university: "",
+    grade: "",
+    location_detail: "",
+    injury_detail: "",
+    treatment: "",
+    transport_needed: "",
+    responder: "",
+  });
 
   const [openDialog, setOpenDialog] = useState(false);
   const [newRecord, setNewRecord] = useState<Casualty>({
@@ -206,13 +166,21 @@ export default function Home() {
     }
   }, [isLoggedIn]);
 
-  // クライアントサイドフィルタリング
+  // カラム別フィルタリングロジック
   const filteredCasualties = useMemo(() => {
     return casualties.filter((c) => {
-      const searchStr = `${c.patient_name} ${c.university} ${c.injury_detail} ${c.treatment} ${c.responder}`.toLowerCase();
-      return searchStr.includes(searchQuery.toLowerCase());
+      return (
+        c.patient_name.toLowerCase().includes(filters.patient_name.toLowerCase()) &&
+        c.university.toLowerCase().includes(filters.university.toLowerCase()) &&
+        c.grade.toLowerCase().includes(filters.grade.toLowerCase()) &&
+        c.location_detail.toLowerCase().includes(filters.location_detail.toLowerCase()) &&
+        c.injury_detail.toLowerCase().includes(filters.injury_detail.toLowerCase()) &&
+        c.treatment.toLowerCase().includes(filters.treatment.toLowerCase()) &&
+        (c.transport_needed || "").toLowerCase().includes(filters.transport_needed.toLowerCase()) &&
+        c.responder.toLowerCase().includes(filters.responder.toLowerCase())
+      );
     });
-  }, [casualties, searchQuery]);
+  }, [casualties, filters]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -284,6 +252,19 @@ export default function Home() {
     } catch (err) {
       alert("Network error while saving record.");
     }
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      patient_name: "",
+      university: "",
+      grade: "",
+      location_detail: "",
+      injury_detail: "",
+      treatment: "",
+      transport_needed: "",
+      responder: "",
+    });
   };
 
   // ログイン画面
@@ -362,28 +343,16 @@ export default function Home() {
           <Toolbar sx={{ justifyContent: 'space-between' }}>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Avatar sx={{ bgcolor: 'secondary.main', mr: 2, width: 32, height: 32 }}>L</Avatar>
-              <Typography variant="h6" component="div" sx={{ display: { xs: 'none', sm: 'block' } }}>
+              <Typography variant="h6" component="div">
                 LAX MEDIC DASHBOARD
               </Typography>
             </Box>
-
-            <Search>
-              <SearchIconWrapper>
-                <SearchIcon color="action" />
-              </SearchIconWrapper>
-              <StyledInputBase
-                placeholder="選手名、大学、怪我の内容で検索..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </Search>
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Button
                 variant="contained"
                 startIcon={<AddIcon />}
                 onClick={() => setOpenDialog(true)}
-                sx={{ display: { xs: 'none', md: 'flex' } }}
               >
                 新規対応
               </Button>
@@ -398,34 +367,105 @@ export default function Home() {
         </AppBar>
 
         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+          {/* 詳細検索エリア */}
+          <Paper elevation={0} sx={{ p: 3, mb: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+              <FilterAltIcon color="primary" />
+              <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+                詳細検索・絞り込み
+              </Typography>
+              <Box sx={{ flexGrow: 1 }} />
+              <Button
+                size="small"
+                startIcon={<ClearIcon />}
+                onClick={clearFilters}
+                disabled={Object.values(filters).every(v => v === "")}
+              >
+                検索クリア
+              </Button>
+            </Stack>
+
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <TextField
+                  fullWidth size="small" label="患者名"
+                  value={filters.patient_name}
+                  onChange={(e) => setFilters({ ...filters, patient_name: e.target.value })}
+                  InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon fontSize="small" /></InputAdornment> }}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <TextField
+                  fullWidth size="small" label="大学名"
+                  value={filters.university}
+                  onChange={(e) => setFilters({ ...filters, university: e.target.value })}
+                />
+              </Grid>
+              <Grid size={{ xs: 6, sm: 3, md: 1.5 }}>
+                <TextField
+                  fullWidth size="small" label="学年"
+                  value={filters.grade}
+                  onChange={(e) => setFilters({ ...filters, grade: e.target.value })}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 4.5 }}>
+                <TextField
+                  fullWidth size="small" label="場所・状況"
+                  value={filters.location_detail}
+                  onChange={(e) => setFilters({ ...filters, location_detail: e.target.value })}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                <TextField
+                  fullWidth size="small" label="負傷詳細"
+                  value={filters.injury_detail}
+                  onChange={(e) => setFilters({ ...filters, injury_detail: e.target.value })}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                <TextField
+                  fullWidth size="small" label="処置内容"
+                  value={filters.treatment}
+                  onChange={(e) => setFilters({ ...filters, treatment: e.target.value })}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                <TextField
+                  fullWidth size="small" label="搬送要否"
+                  value={filters.transport_needed}
+                  onChange={(e) => setFilters({ ...filters, transport_needed: e.target.value })}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+                <TextField
+                  fullWidth size="small" label="対応者"
+                  value={filters.responder}
+                  onChange={(e) => setFilters({ ...filters, responder: e.target.value })}
+                />
+              </Grid>
+            </Grid>
+          </Paper>
+
           {/* 一覧テーブル */}
           <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
-            <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: 'grey.50' }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-                {searchQuery ? `検索結果: ${filteredCasualties.length}件` : `全記録: ${casualties.length}件`}
+            <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', bgcolor: 'grey.50' }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+                検索結果: {filteredCasualties.length}件 / 全 {casualties.length}件
               </Typography>
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<FilterIcon />}
-                disabled
-              >
-                フィルタ
-              </Button>
             </Box>
 
-            <TableContainer sx={{ maxHeight: 'calc(100vh - 250px)' }}>
+            <TableContainer sx={{ maxHeight: 'calc(100vh - 400px)' }}>
               <Table stickyHeader size="medium">
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 800, minWidth: 100 }}>時間</TableCell>
-                    <TableCell sx={{ fontWeight: 800, minWidth: 120 }}>患者名</TableCell>
-                    <TableCell sx={{ fontWeight: 800, minWidth: 150 }}>大学・学年</TableCell>
-                    <TableCell sx={{ fontWeight: 800, minWidth: 200 }}>場所・状況</TableCell>
-                    <TableCell sx={{ fontWeight: 800, minWidth: 250 }}>負傷詳細</TableCell>
-                    <TableCell sx={{ fontWeight: 800, minWidth: 250 }}>処置内容</TableCell>
-                    <TableCell sx={{ fontWeight: 800, minWidth: 130 }}>搬送要否</TableCell>
-                    <TableCell sx={{ fontWeight: 800, minWidth: 100 }}>対応者</TableCell>
+                    <TableCell sx={{ fontWeight: 800, minWidth: 100, bgcolor: 'grey.100' }}>時間</TableCell>
+                    <TableCell sx={{ fontWeight: 800, minWidth: 120, bgcolor: 'grey.100' }}>患者名</TableCell>
+                    <TableCell sx={{ fontWeight: 800, minWidth: 150, bgcolor: 'grey.100' }}>大学・学年</TableCell>
+                    <TableCell sx={{ fontWeight: 800, minWidth: 200, bgcolor: 'grey.100' }}>場所・状況</TableCell>
+                    <TableCell sx={{ fontWeight: 800, minWidth: 250, bgcolor: 'grey.100' }}>負傷詳細</TableCell>
+                    <TableCell sx={{ fontWeight: 800, minWidth: 250, bgcolor: 'grey.100' }}>処置内容</TableCell>
+                    <TableCell sx={{ fontWeight: 800, minWidth: 130, bgcolor: 'grey.100' }}>搬送要否</TableCell>
+                    <TableCell sx={{ fontWeight: 800, minWidth: 100, bgcolor: 'grey.100' }}>対応者</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -463,7 +503,7 @@ export default function Home() {
                   {filteredCasualties.length === 0 && !loading && (
                     <TableRow>
                       <TableCell colSpan={8} align="center" sx={{ py: 10 }}>
-                        <Typography color="text.secondary">記録が見つかりません</Typography>
+                        <Typography color="text.secondary">条件に一致する記録が見つかりません</Typography>
                       </TableCell>
                     </TableRow>
                   )}
@@ -498,7 +538,6 @@ export default function Home() {
               <Stack spacing={3} sx={{ mt: 1 }}>
                 <TextField label="患者名" fullWidth required value={newRecord.patient_name} onChange={e => setNewRecord({ ...newRecord, patient_name: e.target.value })} />
                 <Grid container spacing={2}>
-                  {/* size プロパティを使用して MUI v6 形式で記述 */}
                   <Grid size={{ xs: 6 }}>
                     <TextField label="大学名" fullWidth value={newRecord.university} onChange={e => setNewRecord({ ...newRecord, university: e.target.value })} />
                   </Grid>
