@@ -9,12 +9,14 @@
 
 - **Frontend**: Next.js (App Router) + TypeScript
 - **Backend**: Go (Gin)
+- **Database**: PostgreSQL (Supabase)
 - **Infrastructure**: Docker Compose, Vercel (Frontend), Cloud Run (Backend)
 
 ## 🌐 デプロイ情報
 
 - **Frontend (Vercel)**: [https://lax-medic.vercel.app/](https://lax-medic.vercel.app/)
 - **Backend (Cloud Run)**: [https://lax-medic-727829302986.europe-west1.run.app](https://lax-medic-727829302986.europe-west1.run.app)
+- **Database (Supabase)**: PostgreSQL Managed Service
 
 ## 🛠 テクノロジースタック
 
@@ -47,8 +49,19 @@
 - **ホットリロード**: 
   - フロントエンド：ソース変更時に自動的にブラウザが更新されます。
   - バックエンド：`air` により、`.go` ファイルの変更を検知して自動ビルド・再起動が行われます。
-- **エディタでの型認識**: 
-  - `frontend/node_modules` はホスト側と同期されているため、VS Code などのエディタで型補完が効きます。
+
+## 🌐 本番環境のセットアップ
+
+### 1. データベース (Supabase)
+本番環境では Supabase (PostgreSQL) を利用します。
+1.  Supabase 画面の「SQL Editor」を開きます。
+2.  `backend/db/init.sql` の内容をコピーし、実行（Run）してテーブルを作成します。
+
+### 2. 環境変数の設定 (Cloud Run / Vercel)
+以下の環境変数を各コンソールから設定してください。
+- `DATABASE_URL`: Supabase の接続URI (`postgresql://...`)
+- `SHARED_PASSWORD`: 共通ログインパスワード
+- `NEXT_PUBLIC_API_BASE_URL`: バックエンド (Cloud Run) のURL
 
 ## 📂 ディレクトリ構成
 
