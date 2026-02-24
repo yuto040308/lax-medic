@@ -1,10 +1,17 @@
+```
 # OS files
 .DS_Store
 Thumbs.db
 
 # Frontend
+frontend/.DS_Store
 frontend/node_modules/
 frontend/.next/
+frontend/dist/
+frontend/tmp/
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
 frontend/out/
 frontend/build/
 frontend/.env.local
